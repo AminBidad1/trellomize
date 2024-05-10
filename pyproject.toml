@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "trellomize"
+version = "0.1.0"
+description = ""
+authors = ["aminbidad1 <amin.200.bidad@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pydantic = "^2.7.1"
+pytest = "^8.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
