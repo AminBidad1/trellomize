@@ -23,3 +23,11 @@ class UserModel(Model):
 
     class Meta:
         adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_user.json").resolve())
+
+
+class ProjectModel(Model):
+    title: Optional[str] = None
+    leader_id: Optional[str] = None
+
+    class Meta:
+        adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_project.json").resolve())

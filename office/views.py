@@ -1,5 +1,4 @@
-from pprint import pprint
-from office.models import Model, UserModel
+from office.models import Model, UserModel, ProjectModel
 
 
 class ModelViewSet:
@@ -16,3 +15,7 @@ class ModelViewSet:
 
 class UserViewSet(ModelViewSet):
     model = UserModel
+
+
+class ProjectViewSet(ModelViewSet):
+    model = ProjectModel
