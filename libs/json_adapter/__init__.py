@@ -1,4 +1,6 @@
 import json
+import uuid
+
 from office.exceptions import ValidationError
 
 
@@ -14,7 +16,7 @@ class JsonAdapter:
 
     def update(self, external_data: dict) -> dict:
         data: dict = json.load(open(self.file_path, "r", encoding="utf-8"))
-        _id: int = external_data.get("id")
+        _id: str = external_data.get("id")
         if _id:
             if final_data := self.get(_id):
                 data.update(final_data)
@@ -31,21 +33,18 @@ class JsonAdapter:
         data["count"] += 1
         data["objects"].append(external_data)
 
-        if len(data["objects"]) > 1:
-            data["objects"][-1]["id"] = data["objects"][-2]["id"] + 1
-        else:
-            data["objects"][-1]["id"] = 1
-        json.dump(data, open(self.file_path, "w", encoding="utf-8"))
+        data["objects"][-1]["id"] = str(uuid.uuid1())
+        json.dump(data, open(self.file_path, "w", encoding="utf-8"), indent=4)
         return data["objects"][-1]
 
-    def get(self, _id: int) -> dict | None:
+    def get(self, _id: uuid.UUID) -> dict | None:
         data: dict = json.load(open(self.file_path, encoding="utf-8"))
         for obj in data["objects"]:
             if obj.get("id") == _id:
                 return obj
         return None
 
-    def delete(self, _id: int):
+    def delete(self, _id: str):
         data: dict = json.load(open(self.file_path, encoding="utf-8"))
         for index in range(len(data["objects"])):
             if data["objects"][index].get("id") == _id:
@@ -54,4 +53,4 @@ class JsonAdapter:
                 break
         else:
             return
-        json.dump(data, open(self.file_path, "w", encoding="utf-8"))
+        json.dump(data, open(self.file_path, "w", encoding="utf-8"), indent=4)
