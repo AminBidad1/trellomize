@@ -1,6 +1,13 @@
 import argparse
 import sys
-from office.views import add_user
+from pprint import pprint
+from office.views import UserViewSet
+
+
+def add_user(**kwargs):
+    view = UserViewSet()
+    pprint(view.create(kwargs))
+
 
 commands = {
     "create-admin": add_user,

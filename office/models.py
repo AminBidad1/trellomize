@@ -5,7 +5,7 @@ from settings import ROOT_DIR
 
 
 class Model(BaseModel):
-    id: int = None
+    id: str = None
 
     def save(self):
         self.id = self.Meta.adapter.update(self.dict())["id"]

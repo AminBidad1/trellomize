@@ -16,13 +16,3 @@ class ModelViewSet:
 
 class UserViewSet(ModelViewSet):
     model = UserModel
-
-
-def show_users():
-    view = UserViewSet()
-    pprint(view.list())
-
-
-def add_user(**kwargs):
-    view = UserViewSet()
-    pprint(view.create(kwargs))
