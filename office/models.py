@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+import hashlib
 from libs.json_adapter import JsonAdapter
 from settings import ROOT_DIR
 
@@ -20,6 +21,13 @@ class Model(BaseModel):
 class UserModel(Model):
     username: str
     name: Optional[str] = None
+    email: str
+    password: str
+    is_active: bool = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.password = hashlib.sha256(self.password.encode("utf-8")).hexdigest()
 
     class Meta:
         adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_user.json").resolve())
