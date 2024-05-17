@@ -1,5 +1,5 @@
 {
-    "count": 4,
+    "count": 5,
     "objects": [
         {
             "id": "eb1187ac-138e-11ef-9a17-35faa05248c2",
@@ -13,7 +13,7 @@
             "id": "2f6bbaa8-138f-11ef-9a17-35faa05248c2",
             "username": "amin",
             "name": null,
-            "Email": "amin@gmail.com",
+            "email": "amin@gmail.com",
             "password": "6b51d431df5d7f141cbececcf79edf3dd861c3b4069f0b11661a3eefacbba918",
             "is_active": true
         },
@@ -21,7 +21,7 @@
             "id": "6e61c6c6-138f-11ef-9a17-35faa05248c2",
             "username": "ooo",
             "name": null,
-            "Email": "o@gmail.com",
+            "email": "o@gmail.com",
             "password": "165940940a02a187e4463ff467090930038c5af8fc26107bf301e714f599a1da",
             "is_active": true
         },
@@ -30,6 +30,14 @@
             "username": "ak",
             "name": null,
             "email": "ak@gmail.com",
+            "password": "8527a891e224136950ff32ca212b45bc93f69fbb801c3b1ebedac52775f99e61",
+            "is_active": true
+        },
+        {
+            "id": "a31fc174-143e-11ef-9b99-77b2850b397a",
+            "username": "ali14",
+            "name": null,
+            "email": "ali14@gmail.com",
             "password": "8527a891e224136950ff32ca212b45bc93f69fbb801c3b1ebedac52775f99e61",
             "is_active": true
         }
