@@ -31,3 +31,11 @@ class ProjectModel(Model):
 
     class Meta:
         adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_project.json").resolve())
+
+
+class UserProjectModel(Model):
+    user_id: str
+    project_id: str
+
+    class Meta:
+        adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_user_project.json").resolve())
