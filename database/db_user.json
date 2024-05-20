@@ -1,83 +1,20 @@
 {
-    "count": 10,
+    "count": 6,
     "objects": [
         {
-            "id": "5b26c2be-16f0-11ef-a766-f1c9aa82e7be",
-            "username": "alireza2",
-            "name": null,
-            "email": "admin_test@gmail.com",
-            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-            "is_active": true,
-            "is_admin": true
-        },
-        {
-            "id": "756cf4ae-16f0-11ef-a766-f1c9aa82e7be",
-            "username": "alireza3",
-            "name": null,
-            "email": "ali@gmail.com",
-            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-            "is_active": true,
-            "is_admin": false
-        },
-        {
-            "id": "430af610-1762-11ef-859c-67632e11fb57",
-            "username": "alireza",
-            "name": null,
-            "email": "admin_test@gmail.com",
-            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-            "is_active": true,
-            "is_admin": true
-        },
-        {
-            "id": "85941af2-1762-11ef-859c-67632e11fb57",
-            "username": "ali",
-            "name": null,
-            "email": "ali2@gmail.com",
-            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-            "is_active": true,
-            "is_admin": false
-        },
-        {
-            "id": "34b45f4c-17ae-11ef-8f21-3156ad2a04fd",
-            "username": "alire",
-            "name": null,
-            "email": "1@gmail.com",
-            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-            "is_active": true,
-            "is_admin": false
-        },
-        {
-            "id": "b45a5678-1841-11ef-b65c-ed016136dc09",
-            "username": "aliu",
-            "name": null,
-            "email": "12@kd.el",
-            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
-            "is_active": true,
-            "is_admin": true
-        },
-        {
-            "id": "6f01177a-1845-11ef-b65c-ed016136dc09",
-            "username": "alio",
-            "name": null,
-            "email": "211.@fd.mom",
-            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
-            "is_active": true,
-            "is_admin": false
-        },
-        {
-            "id": "12a57ad2-1851-11ef-a233-ff415b37bfee",
-            "username": "alip",
-            "name": null,
-            "email": "m@gmail.com",
-            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
-            "is_active": true,
-            "is_admin": false
-        },
-        {
-            "id": "58d640ae-185b-11ef-a233-ff415b37bfee",
+            "id": "cdec65c8-19c6-11ef-8039-2d919ee85f9e",
             "username": "alis",
             "name": null,
-            "email": "12@gmail.com",
+            "email": "ewwe@d.df",
+            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+            "is_active": true,
+            "is_admin": false
+        },
+        {
+            "id": "dd63ee5e-19c6-11ef-8039-2d919ee85f9e",
+            "username": "alio",
+            "name": null,
+            "email": "sedj@skd.fdl",
             "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
             "is_active": true,
             "is_admin": false
