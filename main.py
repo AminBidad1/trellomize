@@ -15,11 +15,11 @@ def email_validation(email: str,view: UserViewSet) -> bool:
     pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
     if re.fullmatch(pattern, email):
         if email_exist(email, view):
-            console.print("[bold red]there is a user with this Email address![/bold red]\n")
+            console.print("[bold red]there is a user with this Email address![/bold red]")
             return False
         else:
             return True
-    console.print("[bold red]Invalid Email address![/bold red]\n")
+    console.print("[bold red]Invalid Email address![/bold red]")
     return False
 
 

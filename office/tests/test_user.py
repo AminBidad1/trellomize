@@ -22,7 +22,7 @@ def test_user_object():
 
 
 def test_user_data():
-    user = UserModel(username="test")
+    user = UserModel(username="test", password="1233", email="test@gmail.com", is_acive=True)
     user.save()
     adapter = user.Meta.adapter
     assert user.id == adapter.get(user.id).get("id")
