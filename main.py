@@ -4,6 +4,7 @@ from rich import print, pretty
 import re
 import hashlib
 from rich.console import Console
+from libs.log import log
 
 
 def show_users():
@@ -55,51 +56,96 @@ def sign_up():
     view = UserViewSet()
     user_info = dict()
     username = console.input("[bold cyan]Enter your username : [/bold cyan]")
+    if username == "return":
+        return
     while username_exist(username, view):
         username = console.input("[bold red]There is a user with that username."
                                  "[/bold red]\n[bold yellow]please enter another username : [/bold yellow]")
+        if username == "return":
+            return
     user_info["username"] = username
     email = console.input("[bold cyan]Enter your Email address :[/bold cyan]")
+    if email == "return":
+        return
     while not email_validation(email, view):
         email = console.input("[bold yellow]Please try again : [/bold yellow]")
+        if email == "return":
+            return
     user_info["email"] = email
     user_info["password"] = console.input("[bold cyan]Enter your password : [/bold cyan]")
-    print(user_info)
-    print(view.create(user_info))
+    # print(user_info)
+    view.create(user_info)
+    # show_menu("main",)
 
 
 def log_in():
     view = UserViewSet()
     username = console.input("[bold cyan]Enter your username : [/bold cyan]")
+    if username == "return":
+        return
     while not username_exist(username, view):
         username = console.input("[bold red]There is a no user with that username.[/bold red]\n"
                                  "[bold yellow]Please try again : [/bold yellow]")
+        if username == "return":
+            return
     password = console.input("[bold cyan]Enter your password :[/bold cyan]")
+    if password == "return":
+        return
     while not password_validation(username, password, view):
         password = console.input("[bold red]Invalid password ![/bold red]\n"
                                  "[bold yellow]Please try again : [/bold yellow]")
+        if password == "return":
+            return
     if not check_activation(username, view):
         print("[bold red]Your account is not active.[/bold red]")
     else:
         print(f"[bold green]{username} logged in successfully.[/bold green]")
+        # print(log.info("ailreza"))
+        show_menu("logged", list(filter(lambda item: item["username"] == username, view.list()["objects"]))[0].get("id"))
 
 
-def show_menu():
+def users_activity():
+    view = UserViewSet()
+    users = list(map(lambda item: item["username"], view.list()["objects"]))
+    user_activity = dict()
+    for user in users:
+        user_activity[user] = list(filter(lambda item: item["username"] == user, view.list()["objects"]))[0].get("is_active")
+    print(user_activity)
+    user_input = console.input("Enter username to change activity: ")
+
+
+def show_menu(type: str, user_id: int):
+    view = UserViewSet()
     options = {
         "Show users": show_users,
         "Sign Up": sign_up,
-        "Log in": log_in
+        "Log in": log_in,
+        "Change users activity": users_activity
+
     }
     options_list = list(options.keys())
+    if type == "main":
+        options_list.pop(0)
+        options_list.pop(2)
+    elif not list(filter(lambda item: item["id"] == user_id, view.list()["objects"]))[0].get("is_admin"):
+        for i in range(4):
+            options_list.pop(0)
+    else:
+        for i in range(3):
+            options_list.pop(0)
+
     for index in range(len(options_list)):
         print(f"{index + 1}. {options_list[index]}")
     user_input = int(input("Enter your Option: ")) - 1
+    if user_input == -1:
+        return
     func = options[options_list[user_input]]
     func()
+    show_menu(type, user_id)
 
 
 def main():
-    show_menu()
+    show_menu("main", 0)
 
 
 if __name__ == "__main__":
