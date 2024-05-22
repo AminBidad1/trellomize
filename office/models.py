@@ -25,8 +25,8 @@ class UserModel(Model):
     password: str
     is_active: bool = True
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.password = hashlib.sha256(self.password.encode("utf-8")).hexdigest()
 
     class Meta:
