@@ -14,6 +14,15 @@ class JsonAdapter:
         data: dict = json.load(open(self.file_path, encoding="utf-8"))
         return data
 
+    def filter(self, **kwargs) -> list:
+        data: dict = json.load(open(self.file_path, encoding="utf-8"))
+        filtered_data = data["objects"]
+        for key in kwargs:
+            filtered_data = list(filter(lambda item: item[key] == kwargs[key], filtered_data))
+            if not filtered_data:
+                return []
+        return filtered_data
+
     def update(self, external_data: dict) -> dict:
         data: dict = json.load(open(self.file_path, "r", encoding="utf-8"))
         _id: str = external_data.get("id")
@@ -37,7 +46,7 @@ class JsonAdapter:
         json.dump(data, open(self.file_path, "w", encoding="utf-8"), indent=4)
         return data["objects"][-1]
 
-    def get(self, _id: uuid.UUID) -> dict | None:
+    def get(self, _id: str) -> dict | None:
         data: dict = json.load(open(self.file_path, encoding="utf-8"))
         for obj in data["objects"]:
             if obj.get("id") == _id:

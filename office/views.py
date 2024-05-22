@@ -1,5 +1,4 @@
-from pprint import pprint
-from office.models import Model, UserModel
+from office.models import Model, UserModel, ProjectModel
 
 
 class ModelViewSet:
@@ -13,6 +12,13 @@ class ModelViewSet:
         obj.save()
         return obj.dict()
 
+    def filter(self, **kwargs):
+        return self.model.Meta.adapter.filter(**kwargs)
+
 
 class UserViewSet(ModelViewSet):
     model = UserModel
+
+
+class ProjectViewSet(ModelViewSet):
+    model = ProjectModel

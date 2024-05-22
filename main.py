@@ -1,9 +1,10 @@
 from pprint import pprint
-from office.views import UserViewSet
 from rich import print, pretty
 import re
 import hashlib
 from rich.console import Console
+from office.views import UserViewSet, ProjectViewSet
+from office.models import ProjectModel
 
 
 def show_users():
@@ -11,7 +12,7 @@ def show_users():
     pprint(view.list())
 
 
-def email_validation(email: str,view: UserViewSet) -> bool:
+def email_validation(email: str, view: UserViewSet) -> bool:
     pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
     if re.fullmatch(pattern, email):
         if email_exist(email, view):
@@ -40,7 +41,9 @@ def email_exist(email: str, view: UserViewSet) -> bool:
 
 
 def password_validation(username: str, password: str, view: UserViewSet) -> bool:
-    correct_password = list(filter(lambda item: item["username"] == username, view.list()["objects"]))[0].get("password")
+    correct_password = list(filter(
+        lambda item: item["username"] == username, view.list()["objects"]
+    ))[0].get("password")
     encrypted_password = hashlib.sha256(password.encode("utf-8")).hexdigest()
     if correct_password == encrypted_password:
         return True
@@ -84,11 +87,38 @@ def log_in():
         print(f"[bold green]{username} logged in successfully.[/bold green]")
 
 
+def show_projects():
+    view = ProjectViewSet()
+    pprint(view.list())
+
+
+def add_project():
+    view = UserViewSet()
+    username = console.input("Enter your username: ")
+    if users := view.filter(username=username):
+        user_id = users[0].get("id")
+        title = console.input("Enter your title: ")
+        project = ProjectModel(title=title, leader_id=user_id)
+        project.save()
+        members_count = int(console.input("Enter your count of members: "))
+        for index in range(1, members_count + 1):
+            member_username = console.input(f"{index} - Enter the username of member: ")
+            if m_users := view.filter(username=member_username):
+                member_id = m_users[0].get("id")
+                project.add_member(member_id=member_id)
+            else:
+                console.print("this username does not exist")
+    else:
+        print("the input is not valid.")
+
+
 def show_menu():
     options = {
         "Show users": show_users,
         "Sign Up": sign_up,
-        "Log in": log_in
+        "Log in": log_in,
+        "Show projects": show_projects,
+        "Add project": add_project,
     }
     options_list = list(options.keys())
     for index in range(len(options_list)):
