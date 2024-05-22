@@ -12,6 +12,9 @@ class ModelViewSet:
         obj.save()
         return obj.dict()
 
+    def filter(self, **kwargs):
+        return self.model.Meta.adapter.filter(**kwargs)
+
 
 class UserViewSet(ModelViewSet):
     model = UserModel
