@@ -1,4 +1,4 @@
-from office.models import Model, UserModel, ProjectModel
+from office.models import Model, UserModel, ProjectModel, UserProjectModel
 
 
 class ModelViewSet:
@@ -22,3 +22,15 @@ class UserViewSet(ModelViewSet):
 
 class ProjectViewSet(ModelViewSet):
     model = ProjectModel
+
+    def list(self) -> dict:
+        return self.model.Meta.adapter.get_all()
+
+
+class UserProjectViewSet(ModelViewSet):
+    model = UserProjectModel
+
+    def list(self) -> dict:
+        return self.model.Meta.adapter.get_all()
+
+

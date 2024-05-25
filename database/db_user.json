@@ -1,45 +1,23 @@
 {
-    "count": 5,
+    "count": 6,
     "objects": [
         {
-            "id": "eb1187ac-138e-11ef-9a17-35faa05248c2",
-            "username": "ali",
+            "id": "cdec65c8-19c6-11ef-8039-2d919ee85f9e",
+            "username": "alis",
             "name": null,
-            "email": "ali@gmail.com",
-            "password": "a56c92225d0915101dbbd421cba3da319e85133217bd54749832369f00d7732a",
-            "is_active": true
+            "email": "ewwe@d.df",
+            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+            "is_active": true,
+            "is_admin": false
         },
         {
-            "id": "2f6bbaa8-138f-11ef-9a17-35faa05248c2",
-            "username": "amin",
+            "id": "dd63ee5e-19c6-11ef-8039-2d919ee85f9e",
+            "username": "alio",
             "name": null,
-            "email": "amin@gmail.com",
-            "password": "6b51d431df5d7f141cbececcf79edf3dd861c3b4069f0b11661a3eefacbba918",
-            "is_active": true
-        },
-        {
-            "id": "6e61c6c6-138f-11ef-9a17-35faa05248c2",
-            "username": "ooo",
-            "name": null,
-            "email": "o@gmail.com",
-            "password": "165940940a02a187e4463ff467090930038c5af8fc26107bf301e714f599a1da",
-            "is_active": true
-        },
-        {
-            "id": "7865c2b4-1392-11ef-9a17-35faa05248c2",
-            "username": "ak",
-            "name": null,
-            "email": "ak@gmail.com",
-            "password": "8527a891e224136950ff32ca212b45bc93f69fbb801c3b1ebedac52775f99e61",
-            "is_active": true
-        },
-        {
-            "id": "a31fc174-143e-11ef-9b99-77b2850b397a",
-            "username": "ali14",
-            "name": null,
-            "email": "ali14@gmail.com",
-            "password": "8527a891e224136950ff32ca212b45bc93f69fbb801c3b1ebedac52775f99e61",
-            "is_active": true
+            "email": "sedj@skd.fdl",
+            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+            "is_active": true,
+            "is_admin": false
         }
     ]
 }

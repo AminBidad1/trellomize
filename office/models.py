@@ -26,6 +26,7 @@ class UserModel(Model):
     email: str
     password: str
     is_active: bool = True
+    is_admin: bool = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
