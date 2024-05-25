@@ -63,3 +63,10 @@ class JsonAdapter:
         else:
             return
         json.dump(data, open(self.file_path, "w", encoding="utf-8"), indent=4)
+
+    def purge(self):
+        data: dict = {
+            "count": 0,
+            "objects": []
+        }
+        json.dump(data, open(self.file_path, "w", encoding="utf-8"), indent=4)
