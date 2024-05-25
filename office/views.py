@@ -3,6 +3,7 @@ from office.models import (
     UserModel,
     ProjectModel,
     TaskModel,
+    UserProjectModel,
     CommentModel
 )
 
@@ -35,6 +36,16 @@ class UserViewSet(ModelViewSet):
 
 class ProjectViewSet(ModelViewSet):
     model = ProjectModel
+
+    def list(self) -> dict:
+        return self.model.Meta.adapter.get_all()
+
+
+class UserProjectViewSet(ModelViewSet):
+    model = UserProjectModel
+
+    def list(self) -> dict:
+        return self.model.Meta.adapter.get_all()
 
 
 class TaskViewSet(ModelViewSet):
