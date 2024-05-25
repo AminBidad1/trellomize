@@ -1,4 +1,11 @@
-from office.models import Model, UserModel, ProjectModel, UserProjectModel
+from office.models import (
+    Model,
+    UserModel,
+    ProjectModel,
+    TaskModel,
+    UserProjectModel,
+    CommentModel
+)
 
 
 class ModelViewSet:
@@ -14,6 +21,13 @@ class ModelViewSet:
 
     def filter(self, **kwargs):
         return self.model.Meta.adapter.filter(**kwargs)
+
+    def update(self, **kwargs):
+        return self.model.Meta.adapter.update(kwargs)
+
+    def delete(self, **kwargs):
+        obj = self.model.from_data(self.model.Meta.adapter.filter(**kwargs)[0])
+        obj.delete()
 
 
 class UserViewSet(ModelViewSet):
@@ -34,3 +48,9 @@ class UserProjectViewSet(ModelViewSet):
         return self.model.Meta.adapter.get_all()
 
 
+class TaskViewSet(ModelViewSet):
+    model = TaskModel
+
+
+class CommentViewSet(ModelViewSet):
+    model = CommentModel

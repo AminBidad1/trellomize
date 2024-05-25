@@ -1,21 +1,23 @@
 {
-    "count": 6,
+    "count": 2,
     "objects": [
         {
-            "id": "cdec65c8-19c6-11ef-8039-2d919ee85f9e",
-            "username": "alis",
+            "id": "d1ecb1fa-1a3e-11ef-bbcd-ac728999e945",
+            "created_at": "2024-05-25 06:00:58",
+            "username": "amin",
             "name": null,
-            "email": "ewwe@d.df",
-            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+            "email": "amin@gmail.com",
+            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
             "is_active": true,
-            "is_admin": false
+            "is_admin": true
         },
         {
-            "id": "dd63ee5e-19c6-11ef-8039-2d919ee85f9e",
-            "username": "alio",
+            "id": "e4829e1a-1a3e-11ef-bbcd-ac728999e945",
+            "created_at": "2024-05-25 06:01:29",
+            "username": "amin1",
             "name": null,
-            "email": "sedj@skd.fdl",
-            "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+            "email": "amin1@gmail.com",
+            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
             "is_active": true,
             "is_admin": false
         }

@@ -4,8 +4,14 @@ import re
 import hashlib
 from rich.console import Console
 from libs.log import log
-from office.views import UserViewSet, ProjectViewSet, UserProjectViewSet
-from office.models import ProjectModel
+from office.views import (
+    UserViewSet,
+    ProjectViewSet,
+    UserProjectViewSet,
+    TaskViewSet,
+    CommentViewSet
+)
+from office.models import ProjectModel, TaskModel, Date, CommentModel
 
 
 def show_users(user_id: str):
@@ -245,7 +251,70 @@ def add_project(user_id: str):
             console.print("You cant add this user.")
 
 
-def show_menu(type: str, user_id: str):
+def add_task():
+    user_view = UserViewSet()
+    project_view = ProjectViewSet()
+    username = console.input("Enter your username: ")
+    if users := user_view.filter(username=username):
+        user_id = users[0].get("id")
+        project_title = console.input("Enter the project title: ")
+        project_id = project_view.filter(title=project_title, leader_id=user_id)[0]["id"]
+        title = console.input("Enter your title: ")
+        description = console.input("Enter your description: ")
+        started_at = Date.from_string(console.input("Enter start date and time: "))
+        ended_at = Date.from_string(console.input("Enter end date and time: "))
+        for i in range(1, 5):
+            console.print(f"{i} - {TaskModel.Priority(i).name}")
+        priority = int(console.input("Choice: "))
+        for i in range(1, 6):
+            console.print(f"{i} - {TaskModel.Status(i).name}")
+        status = int(console.input("Choice: "))
+        task = TaskModel(title=title, project_id=project_id, description=description,
+                         started_at=started_at, ended_at=ended_at,
+                         priority=priority, status=status)
+        task.save()
+
+        members_count = int(console.input("Enter your count of members: "))
+        for index in range(1, members_count + 1):
+            member_username = console.input(f"{index} - Enter the username of member: ")
+            if m_users := user_view.filter(username=member_username):
+                member_id = m_users[0].get("id")
+                task.add_member(member_id=member_id)
+            else:
+                console.print("this username does not exist")
+    else:
+        print("the input is not valid.")
+
+
+def show_tasks():
+    view = TaskViewSet()
+    print(view.list())
+
+
+def add_comment():
+    user_view = UserViewSet()
+    task_view = TaskViewSet()
+    username = console.input("Enter your username: ")
+    if users := user_view.filter(username=username):
+        user_id = users[0].get("id")
+        task_title = console.input("Enter the task title: ")
+        if tasks := task_view.filter(title=task_title):
+            task_id = tasks[0].get("id")
+            text = console.input("Enter your text: ")
+            comment = CommentModel(task_id=task_id, text=text, user_id=user_id)
+            comment.save()
+        else:
+            console.print("task does not exist")
+    else:
+        print("the input is not valid.")
+
+
+def show_comments():
+    view = CommentViewSet()
+    view.list()
+
+
+def show_menu(_type: str, user_id: str):
     view = UserViewSet()
     options = {
         "Show users": show_users,
@@ -254,9 +323,13 @@ def show_menu(type: str, user_id: str):
         "Change users activity": users_activity,
         "Show projects": show_projects,
         "Add project": add_project,
+        "Show tasks": show_tasks,
+        "Add task": add_task,
+        "Show comments": show_comments,
+        "Add comment": add_comment,
     }
     options_list = list(options.keys())
-    if type == "main":
+    if _type == "main":
         options_list.pop(0)
         options_list.pop(2)
         options_list.pop(2)
@@ -275,7 +348,7 @@ def show_menu(type: str, user_id: str):
         return
     func = options[options_list[user_input]]
     func(user_id)
-    show_menu(type, user_id)
+    show_menu(_type, user_id)
 
 
 def main():
