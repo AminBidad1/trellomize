@@ -36,24 +36,9 @@ class Model(BaseModel):
     id: str | None = None
     created_at: Optional[Date] = None
 
-    def dict(  # noqa: D102
-        self,
-        *,
-        include: IncEx = None,
-        exclude: IncEx = None,
-        by_alias: bool = False,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-    ) -> typing.Dict[str, Any]:
-        created_at, self.created_at = self.created_at, None
-        data = super().dict().copy()
-        data.update({"created_at": str(created_at)})
-        self.created_at = created_at
-        return data
-
     def save(self):
-        self.created_at = Date(time=datetime.now())
+        if not self.created_at:
+            self.created_at = Date(time=datetime.now())
         self.id = self.Meta.adapter.update(self.dict())["id"]
 
     def delete(self):
@@ -61,6 +46,7 @@ class Model(BaseModel):
 
     @classmethod
     def from_data(cls, data: dict):
+        data["created_at"] = Date.from_string(data.pop("created_at"))
         return cls(**data)
 
     class Meta:
@@ -162,6 +148,7 @@ class TaskModel(Model):
         ARCHIVED = 5
 
     project_id: str
+    auther_id: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
     started_at: Optional[Date] = None
@@ -185,19 +172,47 @@ class TaskModel(Model):
             members.append(member["user_id"])
         return members
 
-    def add_member(self, member_id: str):
+    def add_member(self, member_id: str) -> bool:
         if UserProjectModel.Meta.adapter.filter(user_id=member_id,
                                                 project_id=self.project_id):
             user_project = UserTaskModel(user_id=member_id, task_id=self.id)
             user_project.save()
+            return True
         else:
-            pass    # raise error
+            return False
 
     def remove_member(self, member_id: str):
         user_task_adapter = UserTaskModel.Meta.adapter
         user_task = UserTaskModel(user_id=member_id, task_id=self.id)
         user_task.id = user_task_adapter.filter(user_id=member_id, task_id=self.id)[0]["id"]
         user_task.delete()
+
+    def show_history(self) -> list[dict]:
+        all_data: list[dict] = self.Meta.adapter.filter(
+            created_at=self.created_at,
+            project_id=self.project_id,
+        )
+        all_data.sort(key=lambda item: item["updated_at"])
+        changes: dict
+        history: list[dict] = []
+        for i in range(len(all_data) - 1):
+            changes = dict()
+            for key in all_data[i + 1]:
+                if key not in ["auther_id", "updated_at", "id"]:
+                    if all_data[i + 1][key] != all_data[i][key]:
+                        changes[key] = (all_data[i][key], all_data[i + 1][key])
+                else:
+                    if key != "id":
+                        changes[key] = all_data[i + 1][key]
+            history.append(changes.copy())
+
+        return history
+
+    def from_data(cls, data: dict):
+        data["updated_at"] = Date.from_string(data.pop("updated_at"))
+        data["started_at"] = Date.from_string(data.pop("started_at"))
+        data["ended_at"] = Date.from_string(data.pop("ended_at"))
+        return super().from_data(data=data)
 
     def delete(self):
         for member_id in self.get_members():
@@ -207,6 +222,8 @@ class TaskModel(Model):
     def save(self):
         self.id = None
         self.updated_at = Date(time=datetime.now())
+        if not self.auther_id:
+            self.auther_id = ProjectModel.from_data(ProjectModel.Meta.adapter.get(self.project_id)).leader_id
         super().save()
 
     class Meta:
@@ -225,6 +242,11 @@ class CommentModel(Model):
 class UserTaskModel(Model):
     task_id: str
     user_id: str
+    is_deleted: Optional[bool] = False
+
+    def delete(self):
+        self.is_deleted = True
+        self.save()
 
     class Meta:
         adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_user_task.json").resolve())
