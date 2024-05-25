@@ -61,6 +61,7 @@ class Model(BaseModel):
 
     @classmethod
     def from_data(cls, data: dict):
+        data["created_at"] = Date.from_string(data.pop("created_at"))
         return cls(**data)
 
     class Meta:
