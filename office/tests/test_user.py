@@ -1,15 +1,5 @@
 import hashlib
 from office.models import UserModel, ProjectModel
-# from office.views import UserViewSet
-# from main import(
-#     sign_up,
-#     username_exist,
-#     password_validation,
-#     email_validation,
-#     log_in,
-#     check_activation
-#
-# )
 
 
 def test_user_object():

@@ -4,8 +4,14 @@ import re
 import hashlib
 from rich.console import Console
 from libs.log import log
-from office.views import UserViewSet, ProjectViewSet, UserProjectViewSet
-from office.models import ProjectModel
+from office.views import (
+    UserViewSet,
+    ProjectViewSet,
+    UserProjectViewSet,
+    TaskViewSet,
+    CommentViewSet
+)
+from office.models import ProjectModel, TaskModel, Date, CommentModel
 
 
 def show_users(user_id: str):
@@ -308,8 +314,7 @@ def show_comments():
     view.list()
 
 
-def show_menu():
-def show_menu(type: str, user_id: str):
+def show_menu(_type: str, user_id: str):
     view = UserViewSet()
     options = {
         "Show users": show_users,
@@ -324,7 +329,7 @@ def show_menu(type: str, user_id: str):
         "Add comment": add_comment,
     }
     options_list = list(options.keys())
-    if type == "main":
+    if _type == "main":
         options_list.pop(0)
         options_list.pop(2)
         options_list.pop(2)
@@ -343,7 +348,7 @@ def show_menu(type: str, user_id: str):
         return
     func = options[options_list[user_input]]
     func(user_id)
-    show_menu(type, user_id)
+    show_menu(_type, user_id)
 
 
 def main():
