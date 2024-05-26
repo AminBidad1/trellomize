@@ -140,14 +140,6 @@ def project_environment(project_id: str):
             console.print(list(filter(lambda item: item["id"] == user.get("user_id"), view.list()["objects"]))[0].get("username"))
 
 
-def add_task():
-    pass
-
-
-def show_tasks():
-    pass
-
-
 def manage_task():
     pass
 
@@ -185,29 +177,220 @@ def delete_project(user_id: str, project_id: str):
     view.delete(id=project_id)
 
 
-def show_project_options(user_id: str, project_id: str):
+def show_history():
+    pass
+
+
+def show_task(user_id: str, project_id: str, task_id: str):
+    uview = UserViewSet()
+    tview = TaskViewSet()
+    task = tview.filter(id=task_id)[0]
+    users_in_task = TaskModel.from_data(TaskModel.Meta.adapter.get(task_id)).get_members()
+    table = Table()
+    table.add_column("Field", justify="full", style="magenta")
+    table.add_column("Value", justify="full", style="magenta")
+    table.add_row("title", task.get("title"))
+    table.add_row("Description", task.get("description"))
+    table.add_row("Started at", task.get("started_at"))
+    table.add_row("Finishes at", task.get("ended_at"))
+    table.add_row("Assignees", "")
+    for user in users_in_task:
+        table.add_row( "", uview.filter(id=user)[0].get("username"))
+    table.add_row("priority", TaskModel.Priority(task.get("priority")).name)
+    table.add_row("status", TaskModel.Status(task.get("status")).name)
+    console.print(table)
+
+
+def update_task(user_id: str, project_id: str, task_id: str):
+    user_view = UserViewSet()
+    tview = TaskViewSet()
+    user_project_view = UserProjectViewSet()
+    task = tview.filter(id=task_id)[0]
+    changed_task: TaskModel = TaskModel.from_data(TaskModel.Meta.adapter.get(task_id))
+    users_in_task = TaskModel.from_data(TaskModel.Meta.adapter.get(task_id)).get_members()
+    users_in_task_id = changed_task.get_members()
+    while True:
+        table = Table()
+        table.add_column("Number", justify="full", style="magenta")
+        table.add_column("Field", justify="full", style="magenta")
+        table.add_column("Base", justify="full", style="magenta")
+        table.add_column("Changed", justify="full", style="magenta")
+        table.add_row("1", "title", task.get("title"), changed_task.title)
+        table.add_row("2", "Description", task.get("description"), changed_task.description)
+        table.add_row("3", "Started at", task.get("started_at"), str(changed_task.started_at))
+        table.add_row("4", "Finishes at", task.get("ended_at"), str(changed_task.ended_at))
+        table.add_row("5", "Assignees", "")
+        for i in range(max(len(users_in_task), len(users_in_task_id))):
+            if len(users_in_task) >= i+1 > len(users_in_task_id):
+                table.add_row("", "", user_view.filter(id=users_in_task[i])[0].get("username"), "")
+            elif len(users_in_task_id) >= i+1 > len(users_in_task):
+                table.add_row("", "", "", user_view.filter(id=users_in_task_id[i])[0].get("username"))
+            else:
+                table.add_row("", "", user_view.filter(id=users_in_task[i])[0].get("username"),
+                              user_view.filter(id=users_in_task_id[i])[0].get("username"))
+        table.add_row("6", "priority", TaskModel.Priority(task.get("priority")).name,
+                      TaskModel.Priority(changed_task.priority).name)
+        table.add_row("7", "status", TaskModel.Status(task.get("status")).name,
+                      TaskModel.Status(changed_task.status).name)
+        console.print(table)
+
+        member_number = console.input("Enter Field number to change : ")
+        if member_number == "return":
+            return
+        if member_number == "save":
+
+            break
+        if int(member_number) == 1:
+            changed_task.title = console.input("Enter new title : ")
+        if int(member_number) == 2:
+            changed_task.description = console.input("Enter new description : ")
+        if int(member_number) == 3:
+            while True:
+                _input = console.input("Enter start date and time: ")
+                if validate_date(_input):
+                    input_time = Date.from_string(_input)
+                    if input_time.started_at.time.timestamp() > changed_task.ended_at.time.timestamp():
+                        console.print("Invalid time")
+                    else:
+                        changed_task.started_at = input_time
+                        break
+                else:
+                    console.print("Invalid format")
+        if int(member_number) == 4:
+            _input = console.input("Enter end date and time: ")
+            if validate_date(_input):
+                input_time = Date.from_string(_input)
+                if changed_task.started_at.time.timestamp() > input_time.time.timestamp():
+                    console.print("Invalid time")
+                else:
+                    changed_task.ended_at = input_time
+                    break
+            else:
+                console.print("Invalid format")
+        if int(member_number) == 6:
+            for i in range(1, 5):
+                console.print(f"{i} - {TaskModel.Priority(i).name}")
+            while True:
+                _input = console.input("Enter priority number: ")
+                if 1 <= int(_input) <= 4:
+                    changed_task.priority = int(_input)
+                    break
+                else:
+                    console.print("Invalid input")
+
+        if int(member_number) == 7:
+            for i in range(1, 6):
+                console.print(f"{i} - {TaskModel.Status(i).name}")
+            while True:
+                _input = console.input("Enter status number: ")
+                if 1 <= int(_input) <= 5:
+                    changed_task.status = int(_input)
+                    break
+                else:
+                    console.print("Invalid input")
+
+        if int(member_number) == 0:
+            return
+
+        if int(member_number) == 5:
+            users_in_project = user_project_view.filter(project_id=project_id)
+            while True:
+                table = Table(title="Users")
+                table.add_column("Users", justify="full", style="cyan", no_wrap=True)
+                table.add_column("Users who are not in task", justify="full", style="red", no_wrap=True)
+                table.add_column("Users who are in task", justify="full", style="green", no_wrap=True)
+                for user in users_in_project:
+                    is_in_task = False
+                    for id in users_in_task_id:
+                        if id == user.get("user_id"):
+                            is_in_task = True
+                    if not is_in_task:
+                        table.add_row(user_view.filter(id=user.get("user_id"))[0].get("username"), user_view.filter(id=user.get("user_id"))[0].get("username"), "")
+                    else:
+                        table.add_row(user_view.filter(id=user.get("user_id"))[0].get("username"), "", user_view.filter(id=user.get("user_id"))[0].get("username"))
+                console.print(table)
+
+                member_username = console.input(f"Enter the username of member: ")
+                if member_username == "return":
+                    break
+                if members := user_view.filter(username=member_username):
+                    member_id = members[0].get("id")
+                    for user in users_in_project:
+                        if user.get("user_id") == member_id:
+                            is_in_task = False
+                            for id in users_in_task_id:
+                                if member_id == id:
+                                    is_in_task = True
+                            if not is_in_task:
+                                changed_task.add_member(member_id=member_id)
+                                users_in_task_id.append(member_id)
+                            else:
+                                changed_task.remove_member(member_id=member_id)
+                                users_in_task_id.remove(member_id)
+                else:
+                    console.print("There is no user with this username")
+
+
+
+
+
+def show_task_options(user_id: str, project_id: str, task_id: str):
+    pview = ProjectViewSet()
+    tview = TaskViewSet()
+    show_task(user_id, project_id, task_id)
     options = {
-        "Add task": add_task,
-        "Show tasks": show_tasks,
-        "Manage task": manage_task,
-        "Delete users": delete_user,
-        "Delete project": delete_project,
+        "Update task": update_task,
+        "Add comment": add_comment,
         "Show comments": show_comments,
-        "Add comment": add_comment
+        "Show history": show_history,
     }
+    users_in_task = TaskModel.from_data(TaskModel.Meta.adapter.get(task_id)).get_members()
     options_list = list(options.keys())
+    if not user_id in users_in_task:
+        options_list.pop(0)
+
     table = Table(title="Options")
     table.add_column("Number", justify="full", style="cyan", no_wrap=True)
     table.add_column("Option", justify="full", style="magenta")
     for index in range(len(options_list)):
         table.add_row(str(index + 1), options_list[index])
-        print(f"{index + 1}. {options_list[index]}")
+    console.print(table)
+    user_input = int(input("Enter your Option: ")) - 1
+    if user_input == -1:
+        return
+    func = options[options_list[user_input]]
+    func(user_id, project_id, task_id)
+    show_task_options(user_id, project_id, task_id)
+
+
+def show_project_options(user_id: str, project_id: str):
+    pview = ProjectViewSet()
+    options = {
+        "Show tasks": show_tasks,
+        "Add task": add_task,
+        "Delete users": delete_user,
+        "Delete project": delete_project,
+    }
+    options_list = list(options.keys())
+    if not user_id == pview.filter(id=project_id)[0].get("leader_id"):
+        options_list.pop(1)
+        options_list.pop(1)
+        options_list.pop(1)
+
+    table = Table(title="Options")
+    table.add_column("Number", justify="full", style="cyan", no_wrap=True)
+    table.add_column("Option", justify="full", style="magenta")
+    for index in range(len(options_list)):
+        table.add_row(str(index + 1), options_list[index])
+        # print(f"{index + 1}. {options_list[index]}")
     console.print(table)
     user_input = int(input("Enter your Option: ")) - 1
     if user_input == -1:
         return
     func = options[options_list[user_input]]
     func(user_id, project_id)
+    if user_input == 3:
+        return
     show_project_options(user_id, project_id)
 
 
@@ -399,7 +582,8 @@ def add_task(user_id: str, project_id: str):
                         task.add_member(member_id=member_id)
                         users_in_task_id.append(member_id)
                     else:
-                        console.print("this user is already in task.")
+                        task.remove_member(member_id=member_id)
+                        users_in_task_id.remove(member_id)
         else:
             console.print("There is no user with this username")
 
@@ -464,30 +648,25 @@ def show_tasks(user_id: str, project_id: str):
             temp_archived_tasks = archived_tasks[i]
         table.add_row(temp_backlog_tasks, temp_todo_tasks, temp_doing_tasks, temp_done_tasks, temp_archived_tasks)
 
-    console.print(table)
+    while True:
+        console.print(table)
+        member_input = console.input("Enter Task title :")
+        if member_input == "return":
+            return
+        for task in tasks:
+            if task.get("title") == member_input:
+                show_task_options(user_id, project_id, task.get("id"))
 
 
-def add_comment():
-    user_view = UserViewSet()
-    task_view = TaskViewSet()
-    username = console.input("Enter your username: ")
-    if users := user_view.filter(username=username):
-        user_id = users[0].get("id")
-        task_title = console.input("Enter the task title: ")
-        if tasks := task_view.filter(title=task_title):
-            task_id = tasks[0].get("id")
-            text = console.input("Enter your text: ")
-            comment = CommentModel(task_id=task_id, text=text, user_id=user_id)
-            comment.save()
-        else:
-            console.print("task does not exist")
-    else:
-        print("the input is not valid.")
+def add_comment(user_id: str, project_id: str, task_id: str):
+    text = console.input("Enter your text: ")
+    comment = CommentModel(task_id=task_id, text=text, user_id=user_id)
+    comment.save()
 
 
-def show_comments():
+def show_comments(user_id: str, project_id: str, task_id: str):
     view = CommentViewSet()
-    view.list()
+    print(view.list())
 
 
 def show_menu(_type: str, user_id: str):
@@ -519,7 +698,6 @@ def show_menu(_type: str, user_id: str):
 
     for index in range(len(options_list)):
         table.add_row(str(index + 1), options_list[index])
-        print(f"{index + 1}. {options_list[index]}")
     console.print(table)
     user_input = int(input("Enter your Option: ")) - 1
     if user_input == -1:

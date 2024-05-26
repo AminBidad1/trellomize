@@ -200,6 +200,13 @@ class TaskModel(Model):
         user_task.id = user_task_adapter.filter(user_id=member_id, task_id=self.id)[0]["id"]
         user_task.delete()
 
+    @classmethod
+    def from_data(cls, data: dict):
+        data["updated_at"] = Date.from_string(data.pop("updated_at"))
+        data["started_at"] = Date.from_string(data.pop("started_at"))
+        data["ended_at"] = Date.from_string(data.pop("ended_at"))
+        return super().from_data(data=data)
+
     def delete(self):
         for member_id in self.get_members():
             self.remove_member(member_id=member_id)
