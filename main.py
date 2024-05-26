@@ -17,6 +17,16 @@ from rich.table import Table
 from office.models import ProjectModel, TaskModel, Date, CommentModel
 
 
+# TODO: Handle save
+def is_number(_input: str) -> bool:
+    if _input == "":
+        return False
+    for i in _input:
+        if i not in "0123456789":
+            return False
+    return True
+
+
 def show_users(user_id: str):
     view = UserViewSet()
     pprint(view.list())
@@ -84,10 +94,12 @@ def sign_up(user_id: str):
         if email == "return":
             return
     user_info["email"] = email
-    user_info["password"] = console.input("[bold cyan]Enter your password : [/bold cyan]")
-    # print(user_info)
+    password = console.input("[bold cyan]Enter your password : [/bold cyan]")
+    if password == "return":
+        return
+    user_info["password"] = password
     view.create(user_info)
-    # show_menu("main",)
+    console.print("Account creation was successful")
 
 
 def log_in(user_id: str):
@@ -138,10 +150,6 @@ def project_environment(project_id: str):
     for user in users:
         if user.get("user_id") != leader_id:
             console.print(list(filter(lambda item: item["id"] == user.get("user_id"), view.list()["objects"]))[0].get("username"))
-
-
-def manage_task():
-    pass
 
 
 def delete_user(user_id: str, project_id: str):
@@ -204,6 +212,7 @@ def show_task(user_id: str, project_id: str, task_id: str):
 def update_task(user_id: str, project_id: str, task_id: str):
     user_view = UserViewSet()
     tview = TaskViewSet()
+    pview = ProjectViewSet()
     user_project_view = UserProjectViewSet()
     task = tview.filter(id=task_id)[0]
     changed_task: TaskModel = TaskModel.from_data(TaskModel.Meta.adapter.get(task_id))
@@ -233,48 +242,98 @@ def update_task(user_id: str, project_id: str, task_id: str):
         table.add_row("7", "status", TaskModel.Status(task.get("status")).name,
                       TaskModel.Status(changed_task.status).name)
         console.print(table)
+        member_number: int
+        while True:
+            member_number_str = console.input("Enter Field number to change : ")
+            if member_number_str == "return":
+                return
+            elif member_number_str == "save":
+                # changed_task.save()
+                return
+            elif is_number(member_number_str):
+                member_number = int(member_number_str)
+                break
+            else:
+                console.print("Invalid input")
 
-        member_number = console.input("Enter Field number to change : ")
-        if member_number == "return":
-            return
-        if member_number == "save":
+        if pview.filter(id=project_id)[0].get("leader_id") == user_id:
 
-            break
-        if int(member_number) == 1:
-            changed_task.title = console.input("Enter new title : ")
-        if int(member_number) == 2:
-            changed_task.description = console.input("Enter new description : ")
-        if int(member_number) == 3:
-            while True:
-                _input = console.input("Enter start date and time: ")
+            if int(member_number) == 1:
+                changed_task.title = console.input("Enter new title : ")
+
+            elif int(member_number) == 3:
+                while True:
+                    _input = console.input("Enter start date and time: ")
+                    if validate_date(_input):
+                        input_time = Date.from_string(_input)
+                        if input_time.time.timestamp() > changed_task.ended_at.time.timestamp():
+                            console.print("Invalid time")
+                        else:
+                            changed_task.started_at = input_time
+                            break
+                    else:
+                        console.print("Invalid format")
+            elif int(member_number) == 4:
+                _input = console.input("Enter end date and time: ")
                 if validate_date(_input):
                     input_time = Date.from_string(_input)
-                    if input_time.started_at.time.timestamp() > changed_task.ended_at.time.timestamp():
+                    if changed_task.started_at.time.timestamp() > input_time.time.timestamp():
                         console.print("Invalid time")
                     else:
-                        changed_task.started_at = input_time
+                        changed_task.ended_at = input_time
                         break
                 else:
                     console.print("Invalid format")
-        if int(member_number) == 4:
-            _input = console.input("Enter end date and time: ")
-            if validate_date(_input):
-                input_time = Date.from_string(_input)
-                if changed_task.started_at.time.timestamp() > input_time.time.timestamp():
-                    console.print("Invalid time")
-                else:
-                    changed_task.ended_at = input_time
-                    break
-            else:
-                console.print("Invalid format")
+            elif int(member_number) == 5:
+                users_in_project = user_project_view.filter(project_id=project_id)
+                while True:
+                    table = Table(title="Users")
+                    table.add_column("Users", justify="full", style="cyan", no_wrap=True)
+                    table.add_column("Users who are not in task", justify="full", style="red", no_wrap=True)
+                    table.add_column("Users who are in task", justify="full", style="green", no_wrap=True)
+                    for user in users_in_project:
+                        is_in_task = False
+                        for id in users_in_task_id:
+                            if id == user.get("user_id"):
+                                is_in_task = True
+                        if not is_in_task:
+                            table.add_row(user_view.filter(id=user.get("user_id"))[0].get("username"),
+                                          user_view.filter(id=user.get("user_id"))[0].get("username"), "")
+                        else:
+                            table.add_row(user_view.filter(id=user.get("user_id"))[0].get("username"), "",
+                                          user_view.filter(id=user.get("user_id"))[0].get("username"))
+                    console.print(table)
+
+                    member_username = console.input(f"Enter the username of member: ")
+                    if member_username == "return":
+                        break
+                    if members := user_view.filter(username=member_username):
+                        member_id = members[0].get("id")
+                        for user in users_in_project:
+                            if user.get("user_id") == member_id:
+                                is_in_task = False
+                                for id in users_in_task_id:
+                                    if member_id == id:
+                                        is_in_task = True
+                                if not is_in_task:
+                                    changed_task.add_member(member_id=member_id)
+                                    users_in_task_id.append(member_id)
+                                else:
+                                    changed_task.remove_member(member_id=member_id)
+                                    users_in_task_id.remove(member_id)
+                    else:
+                        console.print("There is no user with this username")
         if int(member_number) == 6:
             for i in range(1, 5):
                 console.print(f"{i} - {TaskModel.Priority(i).name}")
             while True:
                 _input = console.input("Enter priority number: ")
-                if 1 <= int(_input) <= 4:
-                    changed_task.priority = int(_input)
-                    break
+                if is_number(_input):
+                    if 1 <= int(_input) <= 4:
+                        changed_task.priority = int(_input)
+                        break
+                    else:
+                        console.print("Invalid number")
                 else:
                     console.print("Invalid input")
 
@@ -283,55 +342,20 @@ def update_task(user_id: str, project_id: str, task_id: str):
                 console.print(f"{i} - {TaskModel.Status(i).name}")
             while True:
                 _input = console.input("Enter status number: ")
-                if 1 <= int(_input) <= 5:
-                    changed_task.status = int(_input)
-                    break
+                if is_number(_input):
+                    if 1 <= int(_input) <= 5:
+                        changed_task.status = int(_input)
+                        break
+                    else:
+                        console.print("Invalid number")
                 else:
                     console.print("Invalid input")
 
+        if int(member_number) == 2:
+            changed_task.description = console.input("Enter new description : ")
+
         if int(member_number) == 0:
             return
-
-        if int(member_number) == 5:
-            users_in_project = user_project_view.filter(project_id=project_id)
-            while True:
-                table = Table(title="Users")
-                table.add_column("Users", justify="full", style="cyan", no_wrap=True)
-                table.add_column("Users who are not in task", justify="full", style="red", no_wrap=True)
-                table.add_column("Users who are in task", justify="full", style="green", no_wrap=True)
-                for user in users_in_project:
-                    is_in_task = False
-                    for id in users_in_task_id:
-                        if id == user.get("user_id"):
-                            is_in_task = True
-                    if not is_in_task:
-                        table.add_row(user_view.filter(id=user.get("user_id"))[0].get("username"), user_view.filter(id=user.get("user_id"))[0].get("username"), "")
-                    else:
-                        table.add_row(user_view.filter(id=user.get("user_id"))[0].get("username"), "", user_view.filter(id=user.get("user_id"))[0].get("username"))
-                console.print(table)
-
-                member_username = console.input(f"Enter the username of member: ")
-                if member_username == "return":
-                    break
-                if members := user_view.filter(username=member_username):
-                    member_id = members[0].get("id")
-                    for user in users_in_project:
-                        if user.get("user_id") == member_id:
-                            is_in_task = False
-                            for id in users_in_task_id:
-                                if member_id == id:
-                                    is_in_task = True
-                            if not is_in_task:
-                                changed_task.add_member(member_id=member_id)
-                                users_in_task_id.append(member_id)
-                            else:
-                                changed_task.remove_member(member_id=member_id)
-                                users_in_task_id.remove(member_id)
-                else:
-                    console.print("There is no user with this username")
-
-
-
 
 
 def show_task_options(user_id: str, project_id: str, task_id: str):
@@ -355,7 +379,18 @@ def show_task_options(user_id: str, project_id: str, task_id: str):
     for index in range(len(options_list)):
         table.add_row(str(index + 1), options_list[index])
     console.print(table)
-    user_input = int(input("Enter your Option: ")) - 1
+    user_input: int
+    while True:
+        _input = console.input("Enter your Option: ")
+        if is_number(_input):
+            if 0 <= int(_input) <= len(options_list):
+                user_input = int(_input)-1
+                break
+            else:
+                console.print("Invalid number.")
+        else:
+            console.print("Invalid input.")
+
     if user_input == -1:
         return
     func = options[options_list[user_input]]
@@ -384,7 +419,18 @@ def show_project_options(user_id: str, project_id: str):
         table.add_row(str(index + 1), options_list[index])
         # print(f"{index + 1}. {options_list[index]}")
     console.print(table)
-    user_input = int(input("Enter your Option: ")) - 1
+    user_input: int
+    while True:
+        _input = console.input("Enter your Option: ")
+        if is_number(_input):
+            if 0 <= int(_input) <= len(options_list):
+                user_input = int(_input)-1
+                break
+            else:
+                console.print("Invalid number.")
+        else:
+            console.print("Invalid input.")
+
     if user_input == -1:
         return
     func = options[options_list[user_input]]
@@ -412,11 +458,22 @@ def show_projects(user_id: str):
         if is_ok:
             user_projects_id.append(project.get("project_id"))
             console.print(f"{len(user_projects_id)}. {list(filter(lambda item: item["id"] == project.get("project_id"), pview.list()["objects"]))[0].get("title")}")
-    user_number = int(console.input("Enter number of project to open:"))
-    if user_number == 0:
+    user_input: int
+    while True:
+        _input = console.input("Enter number of project to open:")
+        if is_number(_input):
+            if 0 <= int(_input) <= len(user_projects_id):
+                user_input = int(_input)
+                break
+            else:
+                console.print("Invalid number.")
+        else:
+            console.print("Invalid input.")
+
+    if user_input == 0:
         return
-    project_environment(user_projects_id[user_number-1])
-    show_project_options(user_id, user_projects_id[user_number-1])
+    project_environment(user_projects_id[user_input-1])
+    show_project_options(user_id, user_projects_id[user_input-1])
 
 
 def can_add(project_id: str, user_id: str, count: int) -> bool:
@@ -452,7 +509,18 @@ def add_project(user_id: str):
     project = ProjectModel(title=title, leader_id=user_id)
     project.save()
     project.add_member(member_id=user_id)
-    members_count = int(console.input("Enter your count of members: "))
+
+    members_count: int
+    while True:
+        _input = console.input("Enter your count of members: ")
+        if is_number(_input):
+            if 0 <= int(_input):
+                members_count = int(_input)
+                break
+            else:
+                console.print("Invalid number.")
+        else:
+            console.print("Invalid input.")
     index = 1
     while index < members_count + 1:
         member_username = console.input(f"{index} - Enter the username of member: ")
@@ -520,9 +588,12 @@ def add_task(user_id: str, project_id: str):
     priority: int
     while True:
         if _input := console.input("Enter priority number: "):
-            if 1 <= int(_input) <= 4:
-                priority = int(_input)
-                break
+            if is_number(_input):
+                if 1 <= int(_input) <= 4:
+                    priority = int(_input)
+                    break
+                else:
+                    console.print("Invalid number.")
             else:
                 console.print("Invalid input")
         else:
@@ -534,9 +605,12 @@ def add_task(user_id: str, project_id: str):
     status: int
     while True:
         if _input := console.input("Enter status number: "):
-            if 1 <= int(_input) <= 5:
-                status = int(_input)
-                break
+            if is_number(_input):
+                if 1 <= int(_input) <= 5:
+                    status = int(_input)
+                    break
+                else:
+                    console.print("Invalid number")
             else:
                 console.print("Invalid input")
         else:
@@ -699,7 +773,17 @@ def show_menu(_type: str, user_id: str):
     for index in range(len(options_list)):
         table.add_row(str(index + 1), options_list[index])
     console.print(table)
-    user_input = int(input("Enter your Option: ")) - 1
+    user_input: int
+    while True:
+        _input = console.input("Enter your Option: ")
+        if is_number(_input):
+            if 0 <= int(_input) <= len(options_list):
+                user_input = int(_input)-1
+                break
+            else:
+                console.print("Invalid number.")
+        else:
+            console.print("Invalid input.")
     if user_input == -1:
         return
     func = options[options_list[user_input]]
