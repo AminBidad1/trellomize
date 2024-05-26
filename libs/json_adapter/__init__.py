@@ -27,12 +27,17 @@ class JsonAdapter:
         data: dict = json.load(open(self.file_path, "r", encoding="utf-8"))
         _id: str = external_data.get("id")
         if _id:
-            if final_data := self.get(_id):
-                data.update(final_data)
-                json.dump(data, open(self.file_path, "w", encoding="utf-8"))
+            if internal_data := self.get(_id):
+                final_data: dict = dict()
+                for i in range(len(data["objects"])):
+                    if data["objects"][i]["id"] == _id:
+                        data["objects"][i].update(external_data)
+                        final_data = data["objects"][i].copy()
+                        break
+                json.dump(data, open(self.file_path, "w", encoding="utf-8"), indent=4)
                 return final_data
             else:
-                raise ValidationError(f"This data is not in the database: {final_data}")
+                raise ValidationError(f"This data is not in the database: {internal_data}")
         else:
             return self.create(external_data, data)
 
