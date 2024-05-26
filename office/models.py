@@ -1,12 +1,8 @@
-import typing
-
 from pydantic import BaseModel, field_serializer, model_serializer
 from typing import Optional
 import hashlib
 from datetime import datetime
 from enum import Enum
-from pydantic.main import IncEx
-from typing_extensions import Any
 from libs.json_adapter import JsonAdapter
 from settings import ROOT_DIR
 
@@ -168,46 +164,75 @@ class TaskModel(Model):
     def get_members(self) -> list[str]:
         user_task_adapter = UserTaskModel.Meta.adapter
         members: list[str] = []
-        for member in user_task_adapter.filter(task_id=self.id):
+        for member in user_task_adapter.filter(task_id=self.id, is_deleted=False):
             members.append(member["user_id"])
         return members
 
     def add_member(self, member_id: str) -> bool:
         if UserProjectModel.Meta.adapter.filter(user_id=member_id,
                                                 project_id=self.project_id):
-            user_project = UserTaskModel(user_id=member_id, task_id=self.id)
-            user_project.save()
-            return True
+            if not UserTaskModel.Meta.adapter.filter(
+                    user_id=member_id,
+                    task_id=self.id,
+                    is_deleted=False
+            ):
+                user_task = UserTaskModel(user_id=member_id, task_id=self.id, is_deleted=False)
+                user_task.created_at = self.updated_at
+                user_task.is_deleted = False
+                user_task.save()
+                return True
         else:
             return False
 
     def remove_member(self, member_id: str):
         user_task_adapter = UserTaskModel.Meta.adapter
         user_task = UserTaskModel(user_id=member_id, task_id=self.id)
-        user_task.id = user_task_adapter.filter(user_id=member_id, task_id=self.id)[0]["id"]
+        user_task.created_at = self.updated_at
+        # user_task.id = user_task_adapter.filter(user_id=member_id, task_id=self.id)[0]["id"]
         user_task.delete()
 
     def show_history(self) -> list[dict]:
-        all_data: list[dict] = self.Meta.adapter.filter(
-            created_at=self.created_at,
-            project_id=self.project_id,
+        all_data: list[dict] = HistoryModel.Meta.adapter.filter(
+            task_id=self.id
         )
-        all_data.sort(key=lambda item: item["updated_at"])
+        all_data.sort(key=lambda item: item["created_at"])
         changes: dict
         history: list[dict] = []
+        user_task_adapter = UserTaskModel.Meta.adapter
         for i in range(len(all_data) - 1):
             changes = dict()
             for key in all_data[i + 1]:
-                if key not in ["auther_id", "updated_at", "id"]:
+                if key not in ["auther_id", "created_at", "id"]:
                     if all_data[i + 1][key] != all_data[i][key]:
                         changes[key] = (all_data[i][key], all_data[i + 1][key])
                 else:
                     if key != "id":
                         changes[key] = all_data[i + 1][key]
+            users_added: set[str] = set()
+            users_deleted: set[str] = set()
+            for user_task in user_task_adapter.filter(
+                    task_id=self.id,
+                    created_at=all_data[i]["created_at"],
+                    is_deleted=False
+            ):
+                users_added.add(user_task["user_id"])
+            for user_task in user_task_adapter.filter(
+                    task_id=self.id,
+                    created_at=all_data[i]["created_at"],
+                    is_deleted=True
+            ):
+                users_deleted.add(user_task["user_id"])
+            changes.update(
+                {
+                    "users_added": list(users_added),
+                    "users_deleted": list(users_deleted),
+                }
+            )
             history.append(changes.copy())
 
         return history
 
+    @classmethod
     def from_data(cls, data: dict):
         data["updated_at"] = Date.from_string(data.pop("updated_at"))
         data["started_at"] = Date.from_string(data.pop("started_at"))
@@ -220,11 +245,18 @@ class TaskModel(Model):
         super().delete()
 
     def save(self):
-        self.id = None
         self.updated_at = Date(time=datetime.now())
         if not self.auther_id:
             self.auther_id = ProjectModel.from_data(ProjectModel.Meta.adapter.get(self.project_id)).leader_id
         super().save()
+        data = self.dict().copy()
+        data.pop("id")
+        data.pop("updated_at")
+        data.pop("project_id")
+        data["created_at"] = str(self.updated_at)
+        data["task_id"] = self.id
+        history = HistoryModel.from_data(data=data)
+        history.save()
 
     class Meta:
         adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_task.json").resolve())
@@ -250,3 +282,31 @@ class UserTaskModel(Model):
 
     class Meta:
         adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_user_task.json").resolve())
+
+
+class HistoryModel(Model):
+    task_id: str
+    auther_id: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    started_at: Optional[Date] = None
+    ended_at: Optional[Date] = None
+    priority: TaskModel.Priority = TaskModel.Priority.LOW
+    status: TaskModel.Status = TaskModel.Status.BACKLOG
+
+    @field_serializer("started_at", "ended_at")
+    def serialize_date(self, date: Date):
+        return str(date)
+
+    @field_serializer("priority", "status")
+    def serialize_enum(self, enum: TaskModel.Priority | TaskModel.Status):
+        return enum.value
+
+    @classmethod
+    def from_data(cls, data: dict):
+        data["started_at"] = Date.from_string(data.pop("started_at"))
+        data["ended_at"] = Date.from_string(data.pop("ended_at"))
+        return super().from_data(data=data)
+
+    class Meta:
+        adapter = JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_history.json").resolve())

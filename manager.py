@@ -19,6 +19,7 @@ def purge(**kwargs):
     JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_user_project.json").resolve()).purge()
     JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_user_task.json").resolve()).purge()
     JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_comment.json").resolve()).purge()
+    JsonAdapter(ROOT_DIR.joinpath("database").joinpath("db_history.json").resolve()).purge()
     with open(ROOT_DIR.joinpath("database").joinpath("logs.txt").resolve(), "w") as f:
         f.write("")
 
