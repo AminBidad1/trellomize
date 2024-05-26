@@ -1,25 +1,4 @@
 {
-    "count": 2,
-    "objects": [
-        {
-            "id": "d1ecb1fa-1a3e-11ef-bbcd-ac728999e945",
-            "created_at": "2024-05-25 06:00:58",
-            "username": "amin",
-            "name": null,
-            "email": "amin@gmail.com",
-            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-            "is_active": true,
-            "is_admin": true
-        },
-        {
-            "id": "e4829e1a-1a3e-11ef-bbcd-ac728999e945",
-            "created_at": "2024-05-25 06:01:29",
-            "username": "amin1",
-            "name": null,
-            "email": "amin1@gmail.com",
-            "password": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-            "is_active": true,
-            "is_admin": false
-        }
-    ]
+    "count": 0,
+    "objects": []
 }

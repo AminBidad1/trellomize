@@ -1,11 +1,4 @@
 {
-    "count": 1,
-    "objects": [
-        {
-            "id": "03050364-1a3f-11ef-bbcd-ac728999e945",
-            "created_at": "2024-05-25 06:02:20",
-            "title": "project",
-            "leader_id": "d1ecb1fa-1a3e-11ef-bbcd-ac728999e945"
-        }
-    ]
+    "count": 0,
+    "objects": []
 }

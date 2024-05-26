@@ -34,21 +34,24 @@ def main():
     view = UserViewSet()
     parser = argparse.ArgumentParser()
     parser.add_argument("target")
-    parser.add_argument("-u", "--username")
-    parser.add_argument("--password")
+    parser.add_argument("-u", "--username", default=None)
+    parser.add_argument("--password", default=None)
     args = parser.parse_args(sys.argv[1:]).__dict__
     args["is_admin"] = True
     args["email"] = "admin_test@gmail.com"
-    if username_exist(args.get("username"), view):
-        if not list(filter(lambda item: item["username"] == args.get("username"), view.list()["objects"]))[0].get("is_admin"):
-            print(f"User {args.get("username")} is now admin. ")
+    if args.get("target") == "create-admin":
+        if username_exist(args.get("username"), view):
+            if not list(filter(lambda item: item["username"] == args.get("username"), view.list()["objects"]))[0].get("is_admin"):
+                print(f"User {args.get("username")} is now admin. ")
+            else:
+                print("There is a admin with this username.")
         else:
-            print("There is a admin with this username.")
-    else:
-        func = commands[args.pop("target")]
-        func(**args)
-        print("Admin creation was successful.")
-    purge()
+            func = commands[args.pop("target")]
+            func(**args)
+            print("Admin creation was successful.")
+    elif args.get("target") == "purge-data":
+        purge()
+        print("Deleting data was successful.")
 
 
 if __name__ == "__main__":
