@@ -29,6 +29,9 @@ class ModelViewSet:
         obj = self.model.from_data(self.model.Meta.adapter.filter(**kwargs)[0])
         obj.delete()
 
+    def get_object(self, **kwargs):
+        return self.model.from_data(kwargs)
+
 
 class UserViewSet(ModelViewSet):
     model = UserModel

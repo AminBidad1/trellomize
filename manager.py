@@ -50,8 +50,9 @@ def main():
             func(**args)
             print("Admin creation was successful.")
     elif args.get("target") == "purge-data":
-        purge()
-        print("Deleting data was successful.")
+        if input("Are you sure ? [Y/N]") == "Y":
+            purge()
+            print("Deleting data was successful.")
 
 
 if __name__ == "__main__":
