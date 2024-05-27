@@ -33,3 +33,9 @@ with curl: <br>
 
 ### Remove all data
 <code> python manager.py purge-date </code>
+
+### User Interface
+for backing to previous section press "0" or "return" 
+<br>
+for saving the changes of task data press "save"
+
