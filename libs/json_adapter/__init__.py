@@ -12,7 +12,7 @@ class JsonAdapter:
 
     def get_all(self) -> dict:
         data: dict = json.load(open(self.file_path, encoding="utf-8"))
-        return data
+        return data["objects"]
 
     def filter(self, **kwargs) -> list:
         data: dict = json.load(open(self.file_path, encoding="utf-8"))
