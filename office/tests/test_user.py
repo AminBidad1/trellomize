@@ -25,4 +25,4 @@ def test_user_data():
     user2.delete()
     project1.delete()
     user.delete()
-    assert user.id not in [obj["id"] for obj in adapter.get_all()["objects"]]
+    assert user.id not in [obj["id"] for obj in adapter.get_all()]

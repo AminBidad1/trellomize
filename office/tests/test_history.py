@@ -61,4 +61,4 @@ def test_history_data():
     user2.delete()
     user3.delete()
     task.delete()
-    assert task.id not in [obj["id"] for obj in adapter.get_all()["objects"]]
+    assert task.id not in [obj["id"] for obj in adapter.get_all()]

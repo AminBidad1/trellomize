@@ -39,4 +39,4 @@ def test_comment_data():
     user2.delete()
     task.delete()
     comment.delete()
-    assert comment.id not in [obj["id"] for obj in adapter.get_all()["objects"]]
+    assert comment.id not in [obj["id"] for obj in adapter.get_all()]
