@@ -43,4 +43,4 @@ def test_task_data():
     project.delete()
     user2.delete()
     task.delete()
-    assert task.id not in [obj["id"] for obj in adapter.get_all()["objects"]]
+    assert task.id not in [obj["id"] for obj in adapter.get_all()]

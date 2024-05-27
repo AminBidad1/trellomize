@@ -239,13 +239,13 @@ class TaskModel(Model):
                     created_at=all_data[i]["created_at"],
                     is_deleted=False
             ):
-                users_added.add(user_task["user_id"])
+                users_added.add(UserModel.Meta.adapter.get(user_task["user_id"])["username"])
             for user_task in user_task_adapter.filter(
                     task_id=self.id,
                     created_at=all_data[i]["created_at"],
                     is_deleted=True
             ):
-                users_deleted.add(user_task["user_id"])
+                users_deleted.add(UserModel.Meta.adapter.get(user_task["user_id"])["username"])
             changes.update(
                 {
                     "users_added": list(users_added),
