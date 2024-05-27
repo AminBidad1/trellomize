@@ -41,7 +41,7 @@ def email_validation(email: str, view: UserViewSet) -> bool:
 
 
 def username_exist(username: str, view: UserViewSet) -> bool:
-    all_users = list(map(lambda item: item["username"], view.list()["objects"]))
+    all_users = list(map(lambda item: item["username"], view.list()))
     for temp_username in all_users:
         if temp_username == username:
             return True
@@ -49,7 +49,7 @@ def username_exist(username: str, view: UserViewSet) -> bool:
 
 
 def email_exist(email: str, view: UserViewSet) -> bool:
-    all_users = list(map(lambda item: item["email"], view.list()["objects"]))
+    all_users = list(map(lambda item: item["email"], view.list()))
     for temp_username in all_users:
         if temp_username == email:
             return True
@@ -58,7 +58,7 @@ def email_exist(email: str, view: UserViewSet) -> bool:
 
 def password_validation(username: str, password: str, view: UserViewSet) -> bool:
     correct_password = list(filter(
-        lambda item: item["username"] == username, view.list()["objects"]
+        lambda item: item["username"] == username, view.list()
     ))[0].get("password")
     encrypted_password = hashlib.sha256(password.encode("utf-8")).hexdigest()
     if correct_password == encrypted_password:
@@ -123,13 +123,13 @@ def log_in(user_id: str):
     else:
         console.print(f"[bold green]{username} logged in successfully.[/bold green]")
         log.info(f"{username} logged in.")
-        show_menu("logged", list(filter(lambda item: item["username"] == username, view.list()["objects"]))[0].get("id"))
+        show_menu("logged", list(filter(lambda item: item["username"] == username, view.list()))[0].get("id"))
 
 
 def users_activity(user_id: str):
     while True:
         view = UserViewSet()
-        users = view.list()["objects"]
+        users = view.list()
         table = Table()
         table.add_column("Username", justify="full", style="cyan")
         table.add_column("Activity", justify="full", style="chartreuse1")
@@ -211,8 +211,49 @@ def delete_project(user_id: str, project_id: str):
     view.delete(id=project_id)
 
 
-def show_history():
-    pass
+def show_history(user_id: str, project_id: str, task_id: str):
+    task_view = TaskViewSet()
+    user_view = UserViewSet()
+    user_data = task_view.filter(id=task_id)[0]
+    task: TaskModel = task_view.get_object(**user_data)
+    data: list[dict] = task.show_history()
+    index: int = 1
+    username: str
+    for history in data:
+        username = user_view.filter(id=history.get("auther_id"))[0]["username"]
+        console.print(f"{index} - the {username} changed the task at {history.get("created_at")}")
+    history_index = int(console.input("Enter the number of option: ")) - 1
+    history = data[history_index]
+    table = Table()
+    table.add_column("Number", justify="full", style="magenta")
+    table.add_column("Field", justify="full", style="magenta")
+    table.add_column("Base", justify="full", style="magenta")
+    table.add_column("Changed", justify="full", style="magenta")
+    table.add_row(
+        "1", "Title", history.get("title", ("", ""))[0], history.get("title", ("", ""))[1]
+    )
+    table.add_row(
+        "2", "Description", history.get("description", ("", ""))[0], history.get("description", ("", ""))[1]
+    )
+    table.add_row(
+        "3", "Started at", history.get("started_at", ("", ""))[0], history.get("started_at", ("", ""))[1]
+    )
+    table.add_row(
+        "4", "Finishes at", history.get("ended_at", ("", ""))[0], history.get("ended_at", ("", ""))[1]
+    )
+    table.add_row("5", "Users added", "", " ".join(history.get("users_added", ("", ""))))
+    table.add_row("6", "Users removed", "", " ".join(history.get("users_deleted", ("", ""))))
+    table.add_row(
+        "7", "Priority",
+        TaskModel.Priority(history.get("priority", ("", ""))[0]).name,
+        TaskModel.Priority(history.get("priority", ("", ""))[1]).name
+    )
+    table.add_row(
+        "8", "Status",
+        TaskModel.Status(history.get("status", ("", ""))[0]).name,
+        TaskModel.Status(history.get("status", ("", ""))[1]).name
+    )
+    console.print(table)
 
 
 def show_task(user_id: str, project_id: str, task_id: str):
@@ -237,10 +278,10 @@ def show_task(user_id: str, project_id: str, task_id: str):
 
 def update_task(user_id: str, project_id: str, task_id: str):
     user_view = UserViewSet()
-    tview = TaskViewSet()
     pview = ProjectViewSet()
+    task_view = TaskViewSet()
     user_project_view = UserProjectViewSet()
-    task = tview.filter(id=task_id)[0]
+    task = task_view.filter(id=task_id)[0]
     changed_task: TaskModel = TaskModel.from_data(TaskModel.Meta.adapter.get(task_id))
     users_in_task = TaskModel.from_data(TaskModel.Meta.adapter.get(task_id)).get_members()
     users_in_task_id = changed_task.get_members()
@@ -479,13 +520,13 @@ def show_projects(user_id: str):
     table.add_column("Number", justify="full", style="cyan", no_wrap=True)
     table.add_column("Title", justify="full", style="chartreuse1")
 
-    for project in list(filter(lambda item: item["leader_id"] == user_id, pview.list()["objects"])):
+    for project in list(filter(lambda item: item["leader_id"] == user_id, pview.list())):
         user_projects_id.append(project.get("id"))
         table.add_row(str(len(user_projects_id)), project.get("title"), style="chartreuse1")
-    projects = list(filter(lambda item: item["user_id"] == user_id, view.list()["objects"]))
+    projects = list(filter(lambda item: item["user_id"] == user_id, view.list()))
     for project in projects:
         is_ok = True
-        for lproject in list(filter(lambda item: item["leader_id"] == user_id, pview.list()["objects"])):
+        for lproject in list(filter(lambda item: item["leader_id"] == user_id, pview.list())):
             if project.get("project_id") == lproject.get("id"):
                 is_ok = False
         if is_ok:
@@ -514,8 +555,8 @@ def show_projects(user_id: str):
 def can_add(project_id: str, user_id: str, count: int) -> bool:
     view = UserViewSet()
     pview = UserProjectViewSet()
-    if username_exist(list(filter(lambda item: item["id"] == user_id, view.list()["objects"]))[0].get("username"), view):
-        users_in_project = list(filter(lambda item: item["project_id"] == project_id, pview.list()["objects"]))
+    if username_exist(list(filter(lambda item: item["id"] == user_id, view.list()))[0].get("username"), view):
+        users_in_project = list(filter(lambda item: item["project_id"] == project_id, pview.list()))
         for i in range(count):
             if users_in_project[i].get("user_id") == user_id:
                 console.print()
@@ -526,7 +567,7 @@ def can_add(project_id: str, user_id: str, count: int) -> bool:
 
 def title_exist(title: str,) -> bool:
     pview = ProjectViewSet()
-    if len(list(filter(lambda item: item["title"] == title, pview.list()["objects"]))) == 0:
+    if len(list(filter(lambda item: item["title"] == title, pview.list()))) == 0:
         return True
     return False
 
@@ -566,8 +607,8 @@ def add_project(user_id: str):
         if not username_exist(member_username, view):
             console.print("[bold red]There is no user with this username.[/bold red]")
             continue
-        member_id = list(filter(lambda item: item["username"] == member_username, view.list()["objects"]))[0].get("id")
-        if can_add(project.id, list(filter(lambda item: item["username"] == member_username, view.list()["objects"]))[0].get("id"), index):
+        member_id = list(filter(lambda item: item["username"] == member_username, view.list()))[0].get("id")
+        if can_add(project.id, list(filter(lambda item: item["username"] == member_username, view.list()))[0].get("id"), index):
             project.add_member(member_id=member_id)
             log.info(f"{view.filter(id=user_id)[0].get("username")} added {member_username} to {title}.")
             index = index + 1
@@ -808,7 +849,6 @@ def show_logs(user_id: str):
         print(f"[sea_green1]{log[:-1]}[/sea_green1]")
 
 
-
 def show_menu(_type: str, user_id: str):
     view = UserViewSet()
     options = {
@@ -825,7 +865,7 @@ def show_menu(_type: str, user_id: str):
         options_list.pop(2)
         options_list.pop(2)
         options_list.pop(2)
-    elif not list(filter(lambda item: item["id"] == user_id, view.list()["objects"]))[0].get("is_admin"):
+    elif not list(filter(lambda item: item["id"] == user_id, view.list()))[0].get("is_admin"):
         for i in range(4):
             options_list.pop(0)
     else:
@@ -839,17 +879,7 @@ def show_menu(_type: str, user_id: str):
     for index in range(len(options_list)):
         table.add_row(str(index + 1), options_list[index])
     console.print(table)
-    user_input: int
-    while True:
-        _input = console.input("[bright_green]Enter your Option: [/bright_green]")
-        if is_number(_input):
-            if 0 <= int(_input) <= len(options_list):
-                user_input = int(_input)-1
-                break
-            else:
-                console.print("[bold red]Invalid number.[/bold red]")
-        else:
-            console.print("[bold red]Invalid input.[/bold red]")
+    user_input = int(input("Enter your Option: ")) - 1
     if user_input == -1:
         return
     func = options[options_list[user_input]]

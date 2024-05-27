@@ -42,7 +42,8 @@ class Model(BaseModel):
 
     @classmethod
     def from_data(cls, data: dict):
-        data["created_at"] = Date.from_string(data.pop("created_at"))
+        if data.get("created_at"):
+            data["created_at"] = Date.from_string(data.pop("created_at"))
         return cls(**data)
 
     class Meta:
@@ -57,9 +58,21 @@ class UserModel(Model):
     is_active: bool = True
     is_admin: bool = False
 
+    @staticmethod
+    def _is_encrypted_password(password: str) -> bool:
+        if password:
+            if len(password) == 64:
+                for char in password:
+                    if char not in "0123456789abcdef":
+                        return False
+                return True
+            return False
+        return False
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.password = hashlib.sha256(self.password.encode("utf-8")).hexdigest()
+        if not self._is_encrypted_password(self.password):
+            self.password = hashlib.sha256(self.password.encode("utf-8")).hexdigest()
 
     def get_projects(self) -> list[str]:
         user_project_adapter = UserProjectModel.Meta.adapter
@@ -68,9 +81,15 @@ class UserModel(Model):
             projects.append(project["project_id"])
         return projects
 
-    def add_project(self, project_id: str):
-        user_project = UserProjectModel(user_id=self.id, project_id=project_id)
-        user_project.save()
+    def add_project(self, project_id: str) -> bool:
+        if not UserProjectModel.Meta.adapter.filter(
+                user_id=self.id,
+                project_id=project_id,
+        ):
+            user_project = UserProjectModel(user_id=self.id, project_id=project_id)
+            user_project.save()
+            return True
+        return False
 
     def remove_project(self, project_id: str):
         user_project_adapter = UserProjectModel.Meta.adapter
@@ -102,9 +121,16 @@ class ProjectModel(Model):
             members.append(member["user_id"])
         return members
 
-    def add_member(self, member_id: str):
-        user_project = UserProjectModel(user_id=member_id, project_id=self.id)
-        user_project.save()
+    def add_member(self, member_id: str) -> bool:
+        if not UserProjectModel.Meta.adapter.filter(
+                user_id=member_id,
+                project_id=self.id,
+        ):
+            user_project = UserProjectModel(user_id=member_id, project_id=self.id)
+            user_project.save()
+            return True
+        else:
+            return False
 
     def remove_member(self, member_id: str):
         user_project_adapter = UserProjectModel.Meta.adapter
@@ -185,10 +211,8 @@ class TaskModel(Model):
             return False
 
     def remove_member(self, member_id: str):
-        user_task_adapter = UserTaskModel.Meta.adapter
         user_task = UserTaskModel(user_id=member_id, task_id=self.id)
         user_task.created_at = self.updated_at
-        # user_task.id = user_task_adapter.filter(user_id=member_id, task_id=self.id)[0]["id"]
         user_task.delete()
 
     def show_history(self) -> list[dict]:
